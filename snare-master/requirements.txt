@@ -1,0 +1,17 @@
+numpy
+ftfy
+regex
+tqdm
+hydra-core==1.0.5
+wandb==0.10.15
+torch==1.7.1
+torchvision==0.8.2
+clip @ git+https://github.com/openai/CLIP.git@beba48f35392a73c6c47ae67ddffced81ad1916d
+tqdm
+Pillow
+pytorch-lightning==1.2.4
+open3d==0.12.0
+pymcubes==0.1.2
+einops==0.3.2
+numba==0.52.0
+opencv-python

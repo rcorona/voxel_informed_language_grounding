@@ -1,0 +1,126 @@
+hydra:
+  run:
+    dir: ${root_dir}/${train.exps_folder}/${train.folder}
+  sweep:
+    dir: ${root_dir}/${train.exps_folder}/
+    subdir: ${train.folder}
+
+root_dir: /home/rcorona/dev/snare-master # TODO Modify this as needed. 
+
+tag: default
+seed: 0
+debug: False
+
+eval: 
+  model_checkpoint: ""
+  eval_snare: True
+  eval_reconstruction: False
+  eval_intersection: True
+  num_samples: 20
+
+wandb:
+  logger:
+    entity: snare
+    project: snare
+    tags: []
+    offline: False
+    run_name: ${train.exp_name}
+    param_log_freq: 500
+    img_log_freq: 1000000000
+    activation_log_freq: 500
+    val_img_log_epoch_freq: 100000000000
+    acc_log_freq: 10
+  saver:
+    upload: False
+    monitor: 'val_acc'
+
+data:
+  fast_epoch: False
+  amt_data: '${root_dir}/amt/'
+  folds: 'folds_adversarial'
+  voxel_reconstruction: False
+
+  clip_lang_feats: '${root_dir}/data/langfeat-512-clipViT32.json'
+  clip_img_feats: '${root_dir}/data/shapenet-clipViT32-frames.json'
+  
+  legoformer_feats-8: '${root_dir}/data/8-view_embeddings.json' 
+  legoformer_feats-1: '${root_dir}/data/1-view_embeddings.json'
+  
+  shapenet_voxel_dir: '${root_dir}/data/models-binvox-solid'
+
+  n_views: 8
+
+transformer: 
+  freeze_legoformer: True
+  freeze_clip: True
+  lr: 0.001
+  warmup_steps: 10000
+  aggregate_lang: False
+  xyz_embeddings: True
+  skip_legoformer: False
+  skip_clip: False
+  optim: 'adamW'
+  layers: 3
+  head: 'transformer'
+
+legoformer_transforms:
+    mean: [0.5, 0.5, 0.5]
+    std: [0.5, 0.5, 0.5]
+    brightness: 0.4
+    contrast: 0.4
+    saturation: 0.4
+    noise_std: 0.4
+    train_rand_bg_color_range: [[225, 255], [225, 255], [225, 255]]
+    test_rand_bg_color_range: [[240, 240], [240, 240], [240, 240]]
+    bg_mode: random
+
+legoformer_paths: 
+  legoformer_m: '${root_dir}/checkpoints/epoch_10_step_118865.ckpt' # TODO Modify this if using different LegoFormer weights. 
+  cfg: '${root_dir}/legoformer/config/'
+  base_cfg: '${root_dir}/legoformer/config/base_config.yaml'
+
+trainer: 
+  max_steps: 10000000
+
+train:
+  exps_folder: 'snap'
+  exp_name: 'match'
+  folder: ${train.exp_name}
+  run_name: ${train.aggregator.type}
+  pretrained_model: ''
+  model: 'transformer'
+  random_seed: 42
+  log: False
+  lr: 0.001
+  batch_size: 320
+  max_epochs: 75
+  load_from_last_ckpt: False
+  dropout: 0.1
+  normalize_feats: True
+  pretrained_checkpoint: ""
+  fc_projection_type: "fc"
+  feats_backbone: "legoformer"
+  tiny_dataset: False
+  val_freq: 100
+  reconstruction_loss: False
+  weight_decay: 0.01
+  loss_lambda: 0.5
+  task: 'snare'
+
+  aggregator:
+    type: 'maxpool'
+    index: 0 # zeroth-view for 'index' aggregation type
+
+  rotator:
+    teacher_force: True # during training
+    pretrained_cls: '${root_dir}/exp_may06/clip-single_cls-random_index/checkpoints/epoch=0041-val_acc=0.80161.ckpt'
+    estimate_init_state: True
+    estimate_final_state: True
+
+  loss:
+    est_weight: 1.0
+    rot_weight: 1.0
+    cls_weight: 0.2
+
+val:
+  adversarial_init_view: False
